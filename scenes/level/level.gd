@@ -1,28 +1,35 @@
 extends Node2D
-class_name Room
 
-@export var max_width := 15
-@export var min_width := 5
-@export var max_height := 15
-@export var min_height := 5
+var room_scene: PackedScene = preload("res://scenes/room/room.tscn")
+var room_count := 7
+var collision_check_limit := 500
 
-@onready var floor_tilemap: TileMapLayer = $FloorTileMap
-@onready var wall_tilemap: TileMapLayer = $WallTileMap
+@onready var rooms := $Rooms
+var room_list: Array[Room] = []
 
 func _ready() -> void:
-	floor_tilemap.clear()
-	wall_tilemap.clear()
-	var x := randi_range(min_width, max_width)
-	var y := randi_range(min_height, max_height)
-#	place floor tiles
-	for i in range(x):
-		for j in range(y):
-			floor_tilemap.set_cell(Vector2(i, j), 1, Vector2(0,3))
-#	place horizontal walls
-	for i in range(0, x):
-		wall_tilemap.set_cell(Vector2(i, y), 0, Vector2(1,3))
-		wall_tilemap.set_cell(Vector2(i, 0), 0, Vector2(1,3))
-#	place vertical walls
-	for i in range(0, y + 1):
-		wall_tilemap.set_cell(Vector2(x, i), 0, Vector2(1,3))
-		wall_tilemap.set_cell(Vector2(0, i), 0, Vector2(1,3))
+	for i in range(room_count):
+		var room := room_scene.instantiate() as Room
+#		create room with random coords between 0.0 and screenbounds
+		rooms.add_child(room)
+		room.global_position = get_random_coords(room)
+#		check if it collides with existing rooms, if it does give it new coords
+		check_collision(room, 0)
+		room_list.append(room)
+
+func check_collision(room: Room, check_count: int) -> void:
+	check_count += 1
+	assert(check_count < collision_check_limit, "Maximum room collision check recursion limit reached!")
+	for r in room_list:
+		if room.collides_with(r):
+			room.global_position = get_random_coords(room)
+			check_collision(room, check_count)
+			return
+
+func get_random_coords(room: Room) -> Vector2:
+	var screen_size := get_viewport().get_visible_rect().size
+	var room_size := room.get_size()
+	var rand_coords := Vector2.ZERO
+	rand_coords.x = randi_range(0, screen_size.x - room_size.x)
+	rand_coords.y = randi_range(0, screen_size.y - room_size.y)
+	return rand_coords
