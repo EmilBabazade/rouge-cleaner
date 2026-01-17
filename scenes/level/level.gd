@@ -33,35 +33,7 @@ func _ready() -> void:
 				best = other
 		closest_rooms[r] = best
 #		corridors
-		var points := l_path(r.get_center(), best.get_center())
 		r.draw_corridor(best)
-		if draw_corridor_paths:
-#			line2d to visualize paths
-			var line := Line2D.new()
-			add_child(line)
-			line.width = 2
-			line.default_color = Color(randf(), randf(), randf(), 1.0)
-			line.points = points
-
-func l_path(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
-	var pts: Array[Vector2i] = []
-	var x := a.x
-	var y := a.y
-
-	# horizontal
-	var sx := 1 if b.x >= x else -1
-	while x != b.x:
-		pts.append(Vector2i(x, y))
-		x += sx
-
-	# vertical
-	var sy := 1 if b.y >= y else -1
-	while y != b.y:
-		pts.append(Vector2i(x, y))
-		y += sy
-
-	pts.append(b)
-	return pts
 
 func check_collision(room: Room, check_count: int) -> void:
 	check_count += 1

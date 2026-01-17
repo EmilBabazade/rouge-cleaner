@@ -17,18 +17,37 @@ func _ready() -> void:
 	wall_tilemap.clear()
 	width = randi_range(min_width, max_width)
 	height = randi_range(min_height, max_height)
+	var is_door_vertical := randi() % 2 == 0
 #	place floor tiles
 	for i in range(width):
 		for j in range(height):
 			floor_tilemap.set_cell(Vector2(i, j), 1, Vector2(0,3))
 #	place horizontal walls
+	var special_i := randi_range(1, width - 2)
 	for i in range(0, width):
-		wall_tilemap.set_cell(Vector2(i, height), 0, Vector2(1,3))
-		wall_tilemap.set_cell(Vector2(i, 0), 0, Vector2(1,3))
+		if !is_door_vertical and i == special_i:
+			if randi() % 2 == 0:
+				wall_tilemap.set_cell(Vector2(i, height), 0, Vector2(2,3))
+				wall_tilemap.set_cell(Vector2(i, 0), 0, Vector2(1,3))
+			else:
+				wall_tilemap.set_cell(Vector2(i, height), 0, Vector2(1,3))
+				wall_tilemap.set_cell(Vector2(i, 0), 0, Vector2(2,3))
+		else:
+			wall_tilemap.set_cell(Vector2(i, height), 0, Vector2(1,3))
+			wall_tilemap.set_cell(Vector2(i, 0), 0, Vector2(1,3))
 #	place vertical walls
+	special_i = randi_range(1, height - 2)
 	for i in range(0, height + 1):
-		wall_tilemap.set_cell(Vector2(width, i), 0, Vector2(1,3))
-		wall_tilemap.set_cell(Vector2(0, i), 0, Vector2(1,3))
+		if is_door_vertical and i == special_i:
+			if randi() % 2 == 0:
+				wall_tilemap.set_cell(Vector2(width, i), 0, Vector2(2,3))
+				wall_tilemap.set_cell(Vector2(0, i), 0, Vector2(1,3))
+			else:
+				wall_tilemap.set_cell(Vector2(width, i), 0, Vector2(1,3))
+				wall_tilemap.set_cell(Vector2(0, i), 0, Vector2(2,3))
+		else:
+			wall_tilemap.set_cell(Vector2(width, i), 0, Vector2(1,3))
+			wall_tilemap.set_cell(Vector2(0, i), 0, Vector2(1,3))
 
 func draw_corridor(to_room: Room) -> void:
 	# Convert both room centers (WORLD pixels) -> THIS room's tile cells
