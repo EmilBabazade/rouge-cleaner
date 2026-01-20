@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Rouge Cleaner"
-run/main_scene="uid://d20i0wdy34mw5"
+run/main_scene="uid://ieuvtkj711rg"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -40,6 +40,14 @@ gdscript/warnings/unsafe_void_return=2
 gdscript/warnings/return_value_discarded=2
 gdscript/warnings/static_called_on_instance=2
 gdscript/warnings/redundant_await=2
+
+[input]
+
+generate={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":82,"key_label":0,"unicode":114,"location":0,"echo":false,"script":null)
+]
+}
 
 [rendering]
 
