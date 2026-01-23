@@ -17,9 +17,9 @@ extends Node2D
 @export var wall_coords_hor := Vector2i(1, 4)
 @export var wall_alt := 0
 
-@export var door_source := 0
-@export var door_coords := Vector2i(2, 3)
-@export var door_alt := 0
+@export var door_source := 1
+@export var door_coords := Vector2i(0, 0)
+@export var door_alt := 1
 
 var screen_size := Vector2i.ZERO
 
@@ -29,6 +29,7 @@ var rooms: Array[Rect2i] = []
 
 func _ready() -> void:
 	player = player_scene.instantiate() as Player
+	add_child(player)
 	var vp := get_viewport().get_visible_rect().size
 	screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
 	generate()
@@ -40,9 +41,7 @@ func instantiate_player() -> void:
 		randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
 		randi_range(room.position.y + 1, room.position.y + room.size.y - 2)
 	)
-
 	player.global_position = floor_layer.map_to_local(cell)
-	add_child(player)
 
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("generate"):
@@ -199,6 +198,7 @@ func carve_corridors(corridors: Array[Vector2i]) -> void:
 				!is_corner(current) && prev != wall_coords_hor && prev != wall_coords_vert && prev != door_coords
 			):
 				wall_layer.set_cell(corridors[i], door_source, door_coords, door_alt)
+				floor_layer.set_cell(corridors[i], floor_source, floor_coords, floor_alt)
 		elif floor_layer.get_cell_source_id(corridors[i]) == -1:
 			floor_layer.set_cell(corridors[i], floor_source, floor_coords, floor_alt)
 
