@@ -18,8 +18,10 @@ func _process(_delta: float) -> void:
 		move(direction)
 
 func move(direction: Vector2) -> void:
-	var target := global_position + direction * move_dist
-	var tween := create_tween()
-	var _dump := tween.tween_property(self, "global_position", target, 0.05)
-	await tween.finished
-	direction = Vector2.ZERO
+	var motion := direction * move_dist
+	if not test_move(global_transform, motion):
+		var target := global_position + motion
+		var tween := create_tween()
+		var _dump := tween.tween_property(self, "global_position", target, 0.05)
+		await tween.finished
+		direction = Vector2.ZERO

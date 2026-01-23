@@ -41,6 +41,11 @@ gdscript/warnings/return_value_discarded=2
 gdscript/warnings/static_called_on_instance=2
 gdscript/warnings/redundant_await=2
 
+[display]
+
+window/size/viewport_width=1352
+window/size/viewport_height=848
+
 [input]
 
 generate={

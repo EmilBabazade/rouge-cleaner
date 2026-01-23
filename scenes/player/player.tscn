@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://btwxg05tirda7" path="res://scenes/player/player.gd" id="1_dovo2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dovo2"]
-size = Vector2(15.999999, 16)
+size = Vector2(6, 14)
 
 [node name="Player" type="AnimatableBody2D"]
 collision_mask = 2
@@ -16,6 +16,6 @@ scale = Vector2(0.5, 0.5)
 texture = ExtResource("1_8afob")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 2.3841858e-07)
+position = Vector2(9.930833e-09, -1.1920929e-07)
 rotation = 1.5707964
 shape = SubResource("RectangleShape2D_dovo2")
