@@ -13,7 +13,8 @@ extends Node2D
 @export var floor_alt := 0
 
 @export var wall_source := 0
-@export var wall_coords := Vector2i(1, 3)
+@export var wall_coords_vert := Vector2i(0, 4)
+@export var wall_coords_hor := Vector2i(1, 4)
 @export var wall_alt := 0
 
 @export var door_source := 0
@@ -22,17 +23,33 @@ extends Node2D
 
 var screen_size := Vector2i.ZERO
 
+@onready var player_scene := preload("res://scenes/player/player.tscn")
+var player: Player = null
+var rooms: Array[Rect2i] = []
+
 func _ready() -> void:
+	player = player_scene.instantiate() as Player
 	var vp := get_viewport().get_visible_rect().size
 	screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
 	generate()
+
+func instantiate_player() -> void:
+	var room := rooms[0]
+#	generate player in a random coord in first room
+	var cell := Vector2i(
+		randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
+		randi_range(room.position.y + 1, room.position.y + room.size.y - 2)
+	)
+
+	player.global_position = floor_layer.map_to_local(cell)
+	add_child(player)
 
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("generate"):
 		generate()
 
 func generate() -> void:
-	var rooms: Array[Rect2i] = []
+	rooms = []
 	var rooms_grid: Array[Vector2i] = []
 	var corridors: Array[Vector2i] = []
 	floor_layer.clear()
@@ -75,6 +92,7 @@ func generate() -> void:
 	for r in rooms:
 		carve_room(r)
 	carve_corridors(corridors)
+	instantiate_player()
 
 func generate_corridor(room: Rect2i, room_below: Rect2i, room_right: Rect2i) -> Array[Vector2i]:
 #	TODO THIS IS SHIT DONT MAKE IT WALK OVER WALLS
@@ -160,12 +178,12 @@ func carve_room(room: Rect2i) -> void:
 			floor_layer.set_cell(Vector2i(i, j), floor_source, floor_coords, floor_alt)
 #	horizontal walls
 	for i in range(x0, x1):
-		wall_layer.set_cell(Vector2i(i, y0), wall_source, wall_coords, wall_alt)
-		wall_layer.set_cell(Vector2i(i, y1 - 1), wall_source, wall_coords, wall_alt)
+		wall_layer.set_cell(Vector2i(i, y0), wall_source, wall_coords_hor, wall_alt)
+		wall_layer.set_cell(Vector2i(i, y1 - 1), wall_source, wall_coords_hor, wall_alt)
 #	vertical walls
 	for i in range(y0, y1):
-		wall_layer.set_cell(Vector2i(x0, i), wall_source, wall_coords, wall_alt)
-		wall_layer.set_cell(Vector2i(x1 - 1, i), wall_source, wall_coords, wall_alt)
+		wall_layer.set_cell(Vector2i(x0, i), wall_source, wall_coords_vert, wall_alt)
+		wall_layer.set_cell(Vector2i(x1 - 1, i), wall_source, wall_coords_vert, wall_alt)
 
 func carve_corridors(corridors: Array[Vector2i]) -> void:
 	#	if there is a wall place a door, if there is no floor place a floor
@@ -178,7 +196,7 @@ func carve_corridors(corridors: Array[Vector2i]) -> void:
 				prev = wall_layer.get_cell_atlas_coords(corridors[i - 1])
 			if ( 
 				is_corner(prev) || 
-				!is_corner(current) && prev != wall_coords && prev != door_coords
+				!is_corner(current) && prev != wall_coords_hor && prev != wall_coords_vert && prev != door_coords
 			):
 				wall_layer.set_cell(corridors[i], door_source, door_coords, door_alt)
 		elif floor_layer.get_cell_source_id(corridors[i]) == -1:
@@ -197,22 +215,22 @@ func is_corner(coords: Vector2i) -> bool:
 #	floor cells are treated as empty since wall tilemaplayer isnt gonna catch them
 	var is_top_left_corner := (
 		top_left == empty && top == empty && top_right == empty &&
-		left == empty && right == wall_coords &&
-		bottom_left == empty && bottom == wall_coords && bottom_right == empty
+		left == empty && right == wall_coords_hor && right == wall_coords_vert &&
+		bottom_left == empty && bottom == wall_coords_hor && bottom == wall_coords_vert && bottom_right == empty
 		)
 	var is_top_right_corner := (
 		top_left == empty && top == empty && top_right == empty &&
-		left == wall_coords && right == empty &&
-		bottom_left == empty && bottom == wall_coords && bottom_right == empty
+		left == wall_coords_hor && left == wall_coords_vert && right == empty &&
+		bottom_left == empty && bottom == wall_coords_hor && bottom == wall_coords_vert && bottom_right == empty
 		)
 	var is_bottom_left_corner := (
-		top_left == empty && top == wall_coords && top_right == empty &&
-		left == empty && right == wall_coords &&
+		top_left == empty && top == wall_coords_hor && top == wall_coords_vert && top_right == empty &&
+		left == empty && right == wall_coords_hor && right == wall_coords_vert &&
 		bottom_left == empty && bottom == empty && bottom_right == empty
 		)
 	var is_bottom_right_corner := (
-		top_left == empty && top == wall_coords && top_right == empty &&
-		left == wall_coords && right == empty &&
+		top_left == empty && top == wall_coords_hor && top == wall_coords_vert && top_right == empty &&
+		left == wall_coords_hor && left == wall_coords_vert && right == empty &&
 		bottom_left == empty && bottom == empty && bottom_right == empty
 		)
 	return (
@@ -221,185 +239,3 @@ func is_corner(coords: Vector2i) -> bool:
 		is_bottom_left_corner ||
 		is_bottom_right_corner
 	)
-
-#func generate() -> void:
-	#rooms = []
-	#floor_layer.clear()
-	#wall_layer.clear()
-	#for i in range(room_count):
-		#var room := generate_room()
-		#var attempt := 1
-		#var max_attempt := room_count * room.get_area() * 10
-##		regenerate until doesnt collide with other rooms
-		#while collides_with_other_rooms(room) and attempt < max_attempt:
-			#room = generate_room()
-			#attempt += 1
-##		couldnt generate a non colliding room in max attempts so skip this room
-		#if collides_with_other_rooms(room):
-			#continue
-		#carve_room(room)
-		#rooms.append(room)
-	#rooms = sort_rooms_by_distance()
-	#var corridors := generate_corridors()
-	#carve_corridors(corridors)
-#
-#func carve_corridors(corridors: Array[Vector2i]) -> void:
-	##	if there is a wall place a door, if there is no floor place a floor
-	#for i in range(corridors.size()):
-		#floor_layer.set_cell(corridors[i], floor_source, Vector2(0,0), floor_alt)
-		##if wall_layer.get_cell_source_id(corridors[i]) != -1:
-			##var prev := Vector2i(-1, -1)
-			##var current := wall_layer.get_cell_atlas_coords(corridors[i])
-			##if i > 0:
-				##prev = wall_layer.get_cell_atlas_coords(corridors[i - 1])
-			##if ( 
-				##is_corner(prev) || 
-				##!is_corner(current) && prev != wall_coords && prev != door_coords
-			##):
-				##wall_layer.set_cell(corridors[i], door_source, door_coords, door_alt)
-		##elif floor_layer.get_cell_source_id(corridors[i]) == -1:
-			##floor_layer.set_cell(corridors[i], floor_source, floor_coords, floor_alt)
-#
-#
-#func generate_corridors() -> Array[Vector2i]:
-##	TODO: change this so it goes thro walls 2 times, once in beginning room, once at end and never corner
-	#var corridors: Array[Vector2i] = []
-	#for i in range(rooms.size()):
-		#if i + 1 == rooms.size():
-			#return corridors
-		#var current := pick_door_on_permiter(rooms[i], get_room_center(rooms[i+1]))
-		#var end := pick_door_on_permiter(rooms[i+1], get_room_center(rooms[i]))
-		#var passed_thro_start_walls := false
-		#var passed_thro_end_walls := false
-		#while current != end:
-			#var dx := signi(end.x - current.x)
-			#var dy := signi(end.y - current.y)
-			#if dx != 0 and dy != 0:
-				#if randi() % 2 == 0:
-					#current.x += dx
-					#if (
-						#is_passing_thro_wall(rooms[i], current) and passed_thro_start_walls ||
-						#is_passing_thro_wall(rooms[i+1], current) and passed_thro_end_walls):
-						#current.x -= dx
-						#current.y += dy
-					#if is_passing_thro_wall(rooms[i], current) and !passed_thro_start_walls:
-						#passed_thro_start_walls = true
-					#if is_passing_thro_wall(rooms[i+1], current) and !passed_thro_end_walls:
-						#passed_thro_end_walls = true
-				#else:
-					#current.y += dy
-					#if (
-						#is_passing_thro_wall(rooms[i], current) and passed_thro_start_walls ||
-						#is_passing_thro_wall(rooms[i+1], current) and passed_thro_end_walls):
-						#current.x += dx
-						#current.y -= dy
-					#if is_passing_thro_wall(rooms[i], current) and !passed_thro_start_walls:
-						#passed_thro_start_walls = true
-					#if is_passing_thro_wall(rooms[i+1], current) and !passed_thro_end_walls:
-						#passed_thro_end_walls = true
-			#elif dx != 0:
-				#current.x += dx
-			#else:
-				#current.y += dy
-##			do the wall check here, check it once within room start and room end using centers and sizes
-			#corridors.append(current)
-	#return corridors
-#
-#func pick_door_on_permiter(room: Rect2i, goal: Vector2i) -> Vector2i:
-	#var c := get_room_center(room)
-#
-	#var x0 := room.position.x
-	#var y0 := room.position.y
-	#var x1 := room.position.x + room.size.x - 1
-	#var y1 := room.position.y + room.size.y - 1
-#
-	#var dx := goal.x - c.x
-	#var dy := goal.y - c.y
-#
-	## avoid corners: keep door on wall but not at the corner tiles
-	#var safe_y: int = clamp(c.y, y0 + 1, y1 - 1)
-	#var safe_x: int = clamp(c.x, x0 + 1, x1 - 1)
-#
-	## pick the side that faces the goal (major axis)
-	#if abs(dx) >= abs(dy):
-		#if dx >= 0:
-			#return Vector2i(x1, safe_y)  # right wall
-		#else:
-			#return Vector2i(x0, safe_y)  # left wall
-	#else:
-		#if dy >= 0:
-			#return Vector2i(safe_x, y1)  # bottom wall
-		#else:
-			#return Vector2i(safe_x, y0)  # top wall
-#
-#
-#func is_passing_thro_wall(room: Rect2i, coord: Vector2i) -> bool:
-	#var x0 := room.position.x
-	#var y0 := room.position.y
-	#var x1 := room.position.x + room.size.x - 1
-	#var y1 := room.position.y + room.size.y - 1
-	## On left or right wall
-	#if (coord.x == x0 or coord.x == x1) and coord.y >= y0 and coord.y <= y1:
-		#return true
-	## On top or bottom wall
-	#if (coord.y == y0 or coord.y == y1) and coord.x >= x0 and coord.x <= x1:
-		#return true
-	#return false
-#
-#func sort_rooms_by_distance() -> Array[Rect2i]:
-##	sort rooms by distance between room centers
-	#var sorted_rooms: Array[Rect2i] = []
-	#for i in range(rooms.size()):
-		#var distance := 999999999
-		#var sorted_room := Rect2i()
-		#for r in rooms:
-			#if sorted_rooms.has(r):
-				#continue
-##			first room is closest to 0,0
-			#var current_distance := 0
-			#if i == 0:
-				#current_distance = get_room_center(r).distance_to(Vector2i.ZERO) 
-			#else:
-				#current_distance = get_room_center(r).distance_to(get_room_center(rooms[i-1])) 
-			#if current_distance < distance:
-				#distance = current_distance
-				#sorted_room = r
-		#sorted_rooms.append(sorted_room)
-	#return sorted_rooms
-#
-
-#
-#func collides_with_other_rooms(room: Rect2i) -> bool:
-	#for other in rooms:
-		#if room.intersects(other):
-			#return true
-	#return false
-#
-#func generate_room() -> Rect2i:
-	#var width := randi_range(min_size.x, max_size.x)
-	#var height := randi_range(min_size.y, max_size.y)
-	#var screen_size := get_viewport().get_visible_rect().size
-	#var x := randi_range(0, screen_size.x / tile_size - width)
-	#var y := randi_range(0, screen_size.y / tile_size - height)
-	#return Rect2i(x, y, width, height)
-#
-#func carve_room(room: Rect2i) -> void:
-##	put floor tiles x0+1 to x1 - 1 and y0 + 1 to y1 - 1
-##   put horizontal wall tiles x0 to x1 at y0 and same at y1
-##   put vertical wall tiles y0 + 1 to y1 - 1 at x0 and x1
-	#var x0 := room.position.x
-	#var x1 := room.position.x + room.size.x
-	#var y0 := room.position.y
-	#var y1 := room.position.y + room.size.y
-##	floor
-	#for i in range(x0 + 1, x1 - 1):
-		#for j in range(y0 + 1, y1 - 1):
-			#floor_layer.set_cell(Vector2i(i, j), floor_source, floor_coords, floor_alt)
-##	horizontal walls
-	#for i in range(x0, x1):
-		#wall_layer.set_cell(Vector2i(i, y0), wall_source, wall_coords, wall_alt)
-		#wall_layer.set_cell(Vector2i(i, y1 - 1), wall_source, wall_coords, wall_alt)
-##	vertical walls
-	#for i in range(y0, y1):
-		#wall_layer.set_cell(Vector2i(x0, i), wall_source, wall_coords, wall_alt)
-		#wall_layer.set_cell(Vector2i(x1 - 1, i), wall_source, wall_coords, wall_alt)
