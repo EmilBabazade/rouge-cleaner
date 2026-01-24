@@ -6,7 +6,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bu3y2"]
 size = Vector2(16, 16)
 
-[node name="Door" type="Area2D"]
+[node name="Door" type="Area2D" groups=["door"]]
 collision_layer = 4
 script = ExtResource("1_odsy8")
 

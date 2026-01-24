@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=4 uid="uid://ieuvtkj711rg"]
+[gd_scene load_steps=11 format=4 uid="uid://ieuvtkj711rg"]
 
 [ext_resource type="Script" uid="uid://def0pt3df7db2" path="res://scenes/main/main.gd" id="1_hyk8p"]
 [ext_resource type="Texture2D" uid="uid://ca2oll13md1mr" path="res://assets/tileset/tileset.png" id="2_iuonh"]
@@ -31,6 +31,13 @@ physics_layer_1/collision_layer = 4
 sources/0 = SubResource("TileSetAtlasSource_iuonh")
 sources/1 = SubResource("TileSetScenesCollectionSource_l3cfh")
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_l3cfh"]
+texture = ExtResource("2_iuonh")
+0:5/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_6q06x"]
+sources/0 = SubResource("TileSetAtlasSource_l3cfh")
+
 [node name="Main" type="Node2D"]
 script = ExtResource("1_hyk8p")
 
@@ -42,3 +49,6 @@ tile_set = SubResource("TileSet_l3cfh")
 [node name="WallLayer" type="TileMapLayer" parent="."]
 tile_map_data = PackedByteArray("AAABAAEAAAAAAAQAAAABAAIAAAAAAAQAAAABAAMAAAAAAAQAAAABAAQAAAAAAAQAAAABAAUAAAAAAAQAAAABAAYAAAAAAAQAAAACAAEAAAABAAQAAAADAAEAAAABAAQAAAAEAAEAAAABAAQAAAAFAAEAAAABAAQAAAAGAAEAAAAAAAQAAAACAAYAAAABAAQAAAADAAYAAAABAAQAAAAEAAYAAAABAAQAAAAFAAYAAAABAAQAAAAGAAYAAAAAAAQAAAAGAAIAAAAAAAQAAAAGAAMAAAAAAAQAAAAGAAQAAAAAAAQAAAAGAAUAAAAAAAQAAAA=")
 tile_set = SubResource("TileSet_k2fmo")
+
+[node name="DarknessLayer" type="TileMapLayer" parent="."]
+tile_set = SubResource("TileSet_6q06x")

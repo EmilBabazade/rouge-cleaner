@@ -3,15 +3,13 @@ extends Node2D
 @export var tile_size := 16
 @export var min_size := Vector2i(5, 5)
 @export var max_size := Vector2i(16, 16)
-#@export var room_count := 7
 
 @onready var floor_layer: TileMapLayer = $FloorLayer
-@onready var wall_layer: TileMapLayer = $WallLayer
-
 @export var floor_source := 0
 @export var floor_coords := Vector2i(0, 3)
 @export var floor_alt := 0
 
+@onready var wall_layer: TileMapLayer = $WallLayer
 @export var wall_source := 0
 @export var wall_coords_vert := Vector2i(0, 4)
 @export var wall_coords_hor := Vector2i(1, 4)
@@ -21,14 +19,26 @@ extends Node2D
 @export var door_coords := Vector2i(0, 0)
 @export var door_alt := 1
 
+@onready var darkness_layer: TileMapLayer = $DarknessLayer
+@export var darkness_source := 0
+@export var darkness_coords := Vector2i(0, 5)
+@export var darkness_alt := 0
+
 var screen_size := Vector2i.ZERO
 
 @onready var player_scene := preload("res://scenes/player/player.tscn")
 var player: Player = null
 var rooms: Array[Rect2i] = []
+var dark_rooms: Array[Rect2i] = []
+var corridors: Array[Corridor] = []
+var dark_corridors: Array[Corridor] = []
+
 
 @onready var dirt_scene:PackedScene = preload("res://scenes/dirt/dirt.tscn")
 @onready var dirt_holder := $DirtHolder
+
+# TODO: after generating everything put dark tile on top of everything
+# when a player opens a door make the connected corridor or room alight
 
 func _ready() -> void:
 	player = player_scene.instantiate() as Player
@@ -36,7 +46,89 @@ func _ready() -> void:
 	var vp := get_viewport().get_visible_rect().size
 	screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
 	generate()
-	generate_dirts()
+	#generate_dirts()
+
+func connect_signals() -> void:
+	var doors := get_tree().get_nodes_in_group('door')
+	for d: Door in doors:
+		var _x := d.door_opened.connect(on_door_opened)
+
+func _process(_delta: float) -> void:
+# 	regenerate room when r is pressed
+	if Input.is_action_just_pressed("generate"):
+		generate()
+#	when player intersects with a room make it alight
+	var to_remove: Array[int] = []
+	for i in range(dark_rooms.size()):
+		var r := dark_rooms[i]
+		var p := Rect2i(player.position / tile_size, Vector2i(1, 1))
+		if r.intersects(p):
+			for x in range(r.position.x, r.position.x + r.size.x):
+				for y in range(r.position.y, r.position.y + r.size.y):
+					var coord := Vector2i(x,y)
+					darkness_layer.erase_cell(coord)
+			to_remove.append(i)
+	for i in to_remove:
+		dark_rooms.remove_at(i)
+# when player intersects with a corridor make it alight
+	#to_remove = []
+	#for i in range(dark_corridors.size()):
+		#var c := dark_corridors[i]
+		#var p_coord := player.position / tile_size
+		#if c.intersects(p_coord):
+			#var stopped_at_door := false
+			#for cell in c.cells:
+				#var wall := wall_layer.get_cell_atlas_coords(cell)
+				#if wall == door_coords:
+					#stopped_at_door = true
+					#break
+				#darkness_layer.erase_cell(Vector2i(cell.x, cell.y))
+			#if not stopped_at_door:
+				#to_remove.append(i)
+	#for i in to_remove:
+		#dark_corridors.remove_at(i)
+
+# TODO: alights the corridor this door is on
+func on_door_opened() -> void:
+	var curr_pos: Vector2i = player.global_position / tile_size
+	reveal_from(curr_pos)
+
+func reveal_from(start: Vector2i) -> void:
+	var stack: Array[Vector2i] = [start]
+	var seen := {}
+	var dirs := [
+		Vector2i(0,1),
+		Vector2i(0,-1),
+		Vector2i(1,0),
+		Vector2i(-1,0)
+	]
+	for d: Vector2i in dirs: 
+			stack.append(start + d)
+	while stack.size() > 0:
+		var pos: Vector2i = stack.pop_back()
+		if seen.has(pos):
+			continue
+		seen[pos] = true
+		if wall_layer.get_cell_source_id(pos) != -1: 
+			darkness_layer.erase_cell(pos)
+			continue
+		if floor_layer.get_cell_atlas_coords(pos) == door_coords: 
+			darkness_layer.erase_cell(pos)
+			continue
+		darkness_layer.erase_cell(pos)
+		for d: Vector2i in dirs: 
+			stack.append(pos + d)
+
+func erase_darkness(pos: Vector2i) -> void:
+	var dirs := [
+		Vector2i(0, 0),
+		Vector2i(0, 1),
+		Vector2i(0, -1),
+		Vector2i(1, 0),
+		Vector2i(-1, 0)
+	]
+	for dir: Vector2i in dirs:
+		darkness_layer.erase_cell(pos + dir)
 
 # add the player to the scene in a random room
 func instantiate_player() -> void:
@@ -76,18 +168,16 @@ func dirt_collides_with_others(d: Dirt) -> bool:
 			return true
 	return false
 
-func _process(_delta: float) -> void:
-# regenerate room when r is pressed
-	if Input.is_action_just_pressed("generate"):
-		generate()
-
 # generate rooms and corridors
 func generate() -> void:
 	rooms = []
+	corridors = []
 	var rooms_grid: Array[Vector2i] = []
-	var corridors: Array[Vector2i] = []
 	floor_layer.clear()
 	wall_layer.clear()
+	darkness_layer.clear()
+	for child in dirt_holder.get_children():
+		child.queue_free.call_deferred()
 #	divide the room into screen_size / max_size and create a room in each and connect them
 	var section_count := Vector2i(
 		screen_size.x / max_size.x,
@@ -121,13 +211,25 @@ func generate() -> void:
 			var room_right_grid := Vector2i(room_in_grid.x + 1, room_in_grid.y)
 			var idx_right := rooms_grid.find(room_right_grid)
 			corridor = generate_corridor(room, rooms[idx_below], rooms[idx_right])
-		corridors.append_array(corridor)
+		corridors.append(Corridor.create(corridor))
+	dark_rooms = rooms
+	dark_corridors = corridors
 #	carve
 	for r in rooms:
 		carve_room(r)
-	carve_corridors(corridors)
+	carve_corridors()
 	instantiate_player()
 	generate_walls()
+	generate_dirts()
+	connect_signals.call_deferred()
+	generate_darkness()
+
+# make everything dark
+func generate_darkness() -> void:
+	for x in screen_size.x:
+		for y in screen_size.y:
+			var coord := Vector2i(x, y)
+			darkness_layer.set_cell(coord, darkness_source, darkness_coords, darkness_alt)
 
 # fill the rest of the map with walls
 func generate_walls() -> void:
@@ -237,23 +339,26 @@ func carve_room(room: Rect2i) -> void:
 		wall_layer.set_cell(Vector2i(x0, i), wall_source, wall_coords_vert, wall_alt)
 		wall_layer.set_cell(Vector2i(x1 - 1, i), wall_source, wall_coords_vert, wall_alt)
 
-func carve_corridors(corridors: Array[Vector2i]) -> void:
+func carve_corridors() -> void:
 	#	if there is a wall place a door, if there is no floor place a floor
-	for i in range(corridors.size()):
+	var corrs: Array[Vector2i] = []
+	for c in corridors:
+		corrs.append_array(c.cells)
+	for i in range(corrs.size()):
 		#floor_layer.set_cell(corridors[i], floor_source, Vector2(0,0), floor_alt)
-		if wall_layer.get_cell_source_id(corridors[i]) != -1:
+		if wall_layer.get_cell_source_id(corrs[i]) != -1:
 			var prev := Vector2i(-1, -1)
-			var current := wall_layer.get_cell_atlas_coords(corridors[i])
+			var current := wall_layer.get_cell_atlas_coords(corrs[i])
 			if i > 0:
-				prev = wall_layer.get_cell_atlas_coords(corridors[i - 1])
+				prev = wall_layer.get_cell_atlas_coords(corrs[i - 1])
 			if ( 
 				is_corner(prev) || 
 				!is_corner(current) && prev != wall_coords_hor && prev != wall_coords_vert && prev != door_coords
 			):
-				wall_layer.set_cell(corridors[i], door_source, door_coords, door_alt)
-				floor_layer.set_cell(corridors[i], floor_source, floor_coords, floor_alt)
-		elif floor_layer.get_cell_source_id(corridors[i]) == -1:
-			floor_layer.set_cell(corridors[i], floor_source, floor_coords, floor_alt)
+				wall_layer.set_cell(corrs[i], door_source, door_coords, door_alt)
+				floor_layer.set_cell(corrs[i], floor_source, floor_coords, floor_alt)
+		elif floor_layer.get_cell_source_id(corrs[i]) == -1:
+			floor_layer.set_cell(corrs[i], floor_source, floor_coords, floor_alt)
 
 # check if wall is in the corner of room
 func is_corner(coords: Vector2i) -> bool:
