@@ -27,13 +27,18 @@ var screen_size := Vector2i.ZERO
 var player: Player = null
 var rooms: Array[Rect2i] = []
 
+@onready var dirt_scene:PackedScene = preload("res://scenes/dirt/dirt.tscn")
+@onready var dirt_holder := $DirtHolder
+
 func _ready() -> void:
 	player = player_scene.instantiate() as Player
 	add_child(player)
 	var vp := get_viewport().get_visible_rect().size
 	screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
 	generate()
+	generate_dirts()
 
+# add the player to the scene in a random room
 func instantiate_player() -> void:
 	var room := rooms[0]
 #	generate player in a random coord in first room
@@ -43,10 +48,40 @@ func instantiate_player() -> void:
 	)
 	player.global_position = floor_layer.map_to_local(cell)
 
+# generate 0 to minimum room area number of dirts in every room 
+func generate_dirts() -> void:
+	var max_dirt_count := min_size.x * min_size.y
+	for r in rooms:
+		for i in randi_range(0, max_dirt_count):
+			var dirt := dirt_scene.instantiate() as Dirt
+			dirt.global_position = get_random_dirt_coords(r)
+			var attempts := max_dirt_count * 10
+			while dirt_collides_with_others(dirt) and attempts > 0:
+				dirt.global_position = get_random_dirt_coords(r)
+			if !dirt_collides_with_others(dirt):
+				dirt_holder.add_child(dirt)
+
+# get random dirt coordinates in a room
+func get_random_dirt_coords(r: Rect2i) -> Vector2:
+	var coord := Vector2i(-1,-1)
+	coord.x = randi_range(r.position.x + 1, r.position.x + r.size.x - 2)
+	coord.y = randi_range(r.position.y + 1, r.position.y + r.size.y - 2)
+	var local := floor_layer.map_to_local(coord)
+	return to_global(local)
+
+# check if dirt is on top of any other dirt
+func dirt_collides_with_others(d: Dirt) -> bool:
+	for other in d.get_overlapping_areas():
+		if other.is_in_group('dirt'):
+			return true
+	return false
+
 func _process(_delta: float) -> void:
+# regenerate room when r is pressed
 	if Input.is_action_just_pressed("generate"):
 		generate()
 
+# generate rooms and corridors
 func generate() -> void:
 	rooms = []
 	var rooms_grid: Array[Vector2i] = []
@@ -92,9 +127,25 @@ func generate() -> void:
 		carve_room(r)
 	carve_corridors(corridors)
 	instantiate_player()
+	generate_walls()
 
+# fill the rest of the map with walls
+func generate_walls() -> void:
+	for x in screen_size.x:
+		for y in screen_size.y:
+			var coord := Vector2i(x,y)
+			if (floor_layer.get_cell_source_id(coord) == -1
+				and wall_layer.get_cell_source_id(coord) == -1):
+					var above := Vector2i(coord.x, coord.y - 1)
+					var below := Vector2i(coord.x, coord.y + 1)
+					if (floor_layer.get_cell_source_id(above) != -1 or
+						floor_layer.get_cell_source_id(below) != -1):
+						wall_layer.set_cell(coord, wall_source, wall_coords_hor, wall_alt)
+					else:
+						wall_layer.set_cell(coord, wall_source, wall_coords_vert, wall_alt)
+
+# generate corridors between rooms
 func generate_corridor(room: Rect2i, room_below: Rect2i, room_right: Rect2i) -> Array[Vector2i]:
-#	TODO THIS IS SHIT DONT MAKE IT WALK OVER WALLS
 	var corridor: Array[Vector2i] = []
 	# sentinel check (you pass -1 rects when missing neighbor)
 	var has_below := room_below.size.x > 0 and room_below.size.y > 0
@@ -127,6 +178,7 @@ func generate_corridor(room: Rect2i, room_below: Rect2i, room_right: Rect2i) -> 
 			corridor.append(current)
 	return corridor
 
+# check if coord intersects with a wall
 func intersects_wall(c: Vector2i) -> bool:
 	return wall_layer.get_cell_source_id(c) != -1
 
@@ -147,7 +199,7 @@ func get_max_xy(points: Array[Vector2i]) -> Vector2i:
 
 	return Vector2i(max_x, max_y)
 
-
+# generate a room in section
 func generate_room(section_origin: Vector2i) -> Rect2i:
 	var width := randi_range(min_size.x, max_size.x)
 	var height := randi_range(min_size.y, max_size.y)
@@ -163,6 +215,7 @@ func generate_room(section_origin: Vector2i) -> Rect2i:
 
 	return Rect2i(x, y, width, height)
 
+# place floor tiles surrounded by walls
 func carve_room(room: Rect2i) -> void:
 #	put floor tiles x0+1 to x1 - 1 and y0 + 1 to y1 - 1
 #   put horizontal wall tiles x0 to x1 at y0 and same at y1
@@ -202,6 +255,7 @@ func carve_corridors(corridors: Array[Vector2i]) -> void:
 		elif floor_layer.get_cell_source_id(corridors[i]) == -1:
 			floor_layer.set_cell(corridors[i], floor_source, floor_coords, floor_alt)
 
+# check if wall is in the corner of room
 func is_corner(coords: Vector2i) -> bool:
 	var top_left := wall_layer.get_cell_atlas_coords(Vector2i(coords.x - 1, coords.y - 1))
 	var top := wall_layer.get_cell_atlas_coords(Vector2i(coords.x, coords.y - 1))
