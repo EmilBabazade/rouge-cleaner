@@ -37,16 +37,17 @@ var dark_corridors: Array[Corridor] = []
 @onready var dirt_scene:PackedScene = preload("res://scenes/dirt/dirt.tscn")
 @onready var dirt_holder := $DirtHolder
 
-# TODO: after generating everything put dark tile on top of everything
-# when a player opens a door make the connected corridor or room alight
+@onready var camera: Camera2D = $Camera2D
 
 func _ready() -> void:
-	player = player_scene.instantiate() as Player
-	add_child(player)
 	var vp := get_viewport().get_visible_rect().size
 	screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
+	player = player_scene.instantiate() as Player
+	camera.position_smoothing_enabled = false
+	camera.global_position = player.global_position
+	camera.set_deferred('position_smoothing_enabled', true)
+	add_child(player)
 	generate()
-	#generate_dirts()
 
 func connect_signals() -> void:
 	var doors := get_tree().get_nodes_in_group('door')
@@ -54,6 +55,18 @@ func connect_signals() -> void:
 		var _x := d.door_opened.connect(on_door_opened)
 
 func _process(_delta: float) -> void:
+#	camera follow player
+	camera.global_position = player.global_position
+#	change camera zoom level
+	if Input.is_action_just_pressed("zoom"):
+		if camera.zoom == Vector2.ONE:
+			camera.position_smoothing_enabled = false
+			camera.zoom = Vector2(2,2)
+			camera.position_smoothing_enabled = true
+		else:
+			camera.position_smoothing_enabled = false
+			camera.zoom = Vector2.ONE
+			camera.position_smoothing_enabled = true
 # 	regenerate room when r is pressed
 	if Input.is_action_just_pressed("generate"):
 		generate()
@@ -70,25 +83,8 @@ func _process(_delta: float) -> void:
 			to_remove.append(i)
 	for i in to_remove:
 		dark_rooms.remove_at(i)
-# when player intersects with a corridor make it alight
-	#to_remove = []
-	#for i in range(dark_corridors.size()):
-		#var c := dark_corridors[i]
-		#var p_coord := player.position / tile_size
-		#if c.intersects(p_coord):
-			#var stopped_at_door := false
-			#for cell in c.cells:
-				#var wall := wall_layer.get_cell_atlas_coords(cell)
-				#if wall == door_coords:
-					#stopped_at_door = true
-					#break
-				#darkness_layer.erase_cell(Vector2i(cell.x, cell.y))
-			#if not stopped_at_door:
-				#to_remove.append(i)
-	#for i in to_remove:
-		#dark_corridors.remove_at(i)
 
-# TODO: alights the corridor this door is on
+#  alights the corridor this door is on
 func on_door_opened() -> void:
 	var curr_pos: Vector2i = player.global_position / tile_size
 	reveal_from(curr_pos)
@@ -226,8 +222,9 @@ func generate() -> void:
 
 # make everything dark
 func generate_darkness() -> void:
-	for x in screen_size.x:
-		for y in screen_size.y:
+	var cover_size := screen_size * 1.2
+	for x in cover_size.x:
+		for y in cover_size.y:
 			var coord := Vector2i(x, y)
 			darkness_layer.set_cell(coord, darkness_source, darkness_coords, darkness_alt)
 

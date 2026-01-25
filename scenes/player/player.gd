@@ -12,6 +12,7 @@ var held_dir := Vector2.ZERO
 var repeat_timer := 0.0
 var first_repeat := true
 
+
 func _process(delta: float) -> void:
 	var dir := _read_dir()
 	if dir != Vector2.ZERO:
