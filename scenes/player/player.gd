@@ -14,6 +14,9 @@ var first_repeat := true
 
 @onready var cleaning_area: Area2D = $CleaningArea
 
+@onready var move_audio: AudioStreamPlayer2D = $MoveAudio
+@onready var cleaning_audio: AudioStreamPlayer2D = $CleaningAudio
+
 func _process(delta: float) -> void:
 #	movement
 	var dir := _read_dir()
@@ -34,6 +37,8 @@ func _process(delta: float) -> void:
 		var areas := cleaning_area.get_overlapping_areas()
 		for area in areas:
 			if area.is_in_group("dirt"):
+				if not cleaning_audio.playing:
+					cleaning_audio.play()
 				area.queue_free.call_deferred()
 
 func _read_dir() -> Vector2:
@@ -50,6 +55,9 @@ func _read_dir() -> Vector2:
 func _try_step(dir: Vector2) -> void:
 	if moving:
 		return
+	if not move_audio.playing:
+		#move_audio.pitch_scale = randf_range(0.9, 1)
+		move_audio.play()
 	moving = true
 	var motion := dir * move_dist
 	if not test_move(global_transform, motion):

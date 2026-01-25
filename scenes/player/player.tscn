@@ -1,7 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://b16eieqgokxtu"]
+[gd_scene load_steps=7 format=3 uid="uid://b16eieqgokxtu"]
 
 [ext_resource type="Texture2D" uid="uid://c6cmxjrqdxqcq" path="res://assets/tileset/player.png" id="1_8afob"]
 [ext_resource type="Script" uid="uid://btwxg05tirda7" path="res://scenes/player/player.gd" id="1_dovo2"]
+[ext_resource type="AudioStream" uid="uid://dqdjg3alktbyo" path="res://assets/audio/386651__jalastram__sfx_jump_40_edited.wav" id="3_gmlin"]
+[ext_resource type="AudioStream" uid="uid://3brjng2210ac" path="res://assets/audio/81076__bennstir__vacuum-off_edited.wav" id="4_lvxji"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dovo2"]
 size = Vector2(8, 8)
@@ -30,3 +32,10 @@ collision_mask = 8
 position = Vector2(0, -2)
 shape = SubResource("RectangleShape2D_gmlin")
 debug_color = Color(0.717331, 0.4230309, 0.61372447, 0.41960785)
+
+[node name="MoveAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_gmlin")
+volume_db = -10.0
+
+[node name="CleaningAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_lvxji")
