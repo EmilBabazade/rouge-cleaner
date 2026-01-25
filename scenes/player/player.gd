@@ -12,8 +12,10 @@ var held_dir := Vector2.ZERO
 var repeat_timer := 0.0
 var first_repeat := true
 
+@onready var cleaning_area: Area2D = $CleaningArea
 
 func _process(delta: float) -> void:
+#	movement
 	var dir := _read_dir()
 	if dir != Vector2.ZERO:
 		if dir != held_dir:
@@ -27,6 +29,12 @@ func _process(delta: float) -> void:
 				_try_step(dir)
 	else:
 		held_dir = Vector2.ZERO
+#	cleaning
+	if Input.is_action_just_pressed("clean"):
+		var areas := cleaning_area.get_overlapping_areas()
+		for area in areas:
+			if area.is_in_group("dirt"):
+				area.queue_free.call_deferred()
 
 func _read_dir() -> Vector2:
 	if Input.is_action_pressed("left"):
