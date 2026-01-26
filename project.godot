@@ -15,6 +15,10 @@ run/main_scene="uid://ieuvtkj711rg"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+TurnManager="*res://managers/TurnManager.gd"
+
 [debug]
 
 gdscript/warnings/unassigned_variable=2
@@ -37,7 +41,7 @@ gdscript/warnings/unsafe_method_access=2
 gdscript/warnings/unsafe_cast=2
 gdscript/warnings/unsafe_call_argument=2
 gdscript/warnings/unsafe_void_return=2
-gdscript/warnings/return_value_discarded=2
+gdscript/warnings/return_value_discarded=1
 gdscript/warnings/static_called_on_instance=2
 gdscript/warnings/redundant_await=2
 

@@ -40,6 +40,7 @@ func _process(delta: float) -> void:
 				if not cleaning_audio.playing:
 					cleaning_audio.play()
 				area.queue_free.call_deferred()
+				TurnManager.move_turn()
 
 func _read_dir() -> Vector2:
 	if Input.is_action_pressed("left"):
@@ -69,3 +70,4 @@ func _try_step(dir: Vector2) -> void:
 	moving = false
 	repeat_timer = first_repeat_delay if first_repeat else repeat_delay
 	first_repeat = false
+	TurnManager.move_turn()

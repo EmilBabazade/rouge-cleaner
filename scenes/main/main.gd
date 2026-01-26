@@ -52,7 +52,11 @@ func _ready() -> void:
 func connect_signals() -> void:
 	var doors := get_tree().get_nodes_in_group('door')
 	for d: Door in doors:
-		var _x := d.door_opened.connect(on_door_opened)
+		d.door_opened.connect(on_door_opened)
+	TurnManager.new_turn.connect(on_next_turn)
+
+func on_next_turn(turn: int) -> void:
+	print("turn: ", turn)
 
 func _process(_delta: float) -> void:
 #	camera follow player
@@ -174,6 +178,7 @@ func generate() -> void:
 	darkness_layer.clear()
 	for child in dirt_holder.get_children():
 		child.queue_free.call_deferred()
+	TurnManager.reset()
 #	divide the room into screen_size / max_size and create a room in each and connect them
 	var section_count := Vector2i(
 		screen_size.x / max_size.x,
