@@ -33,6 +33,12 @@ var dark_rooms: Array[Rect2i] = []
 var corridors: Array[Corridor] = []
 var dark_corridors: Array[Corridor] = []
 
+@onready var hero_scene := preload("res://scenes/hero/hero.tscn")
+var hero: Hero
+@export var min_hero_turn := 10
+@export var max_hero_turn := 50
+var hero_turn: int
+var player_spawn_room: Rect2
 
 @onready var dirt_scene:PackedScene = preload("res://scenes/dirt/dirt.tscn")
 @onready var dirt_holder := $DirtHolder
@@ -87,6 +93,16 @@ func _process(_delta: float) -> void:
 			to_remove.append(i)
 	for i in to_remove:
 		dark_rooms.remove_at(i)
+#	add hero that chases the player
+	if TurnManager._turn == hero_turn and not hero.is_node_ready():
+		var room := player_spawn_room
+	#	generate hero in a random coord in first room
+		var cell := Vector2i(
+			randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
+			randi_range(room.position.y + 1, room.position.y + room.size.y - 2)
+		)
+		hero.global_position = floor_layer.map_to_local(cell)
+		add_child(hero)
 
 #  alights the corridor this door is on
 func on_door_opened() -> void:
@@ -133,6 +149,7 @@ func erase_darkness(pos: Vector2i) -> void:
 # add the player to the scene in a random room
 func instantiate_player() -> void:
 	var room := rooms[0]
+	player_spawn_room = room
 #	generate player in a random coord in first room
 	var cell := Vector2i(
 		randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
@@ -179,6 +196,10 @@ func generate() -> void:
 	for child in dirt_holder.get_children():
 		child.queue_free.call_deferred()
 	TurnManager.reset()
+	if hero != null:
+		hero.queue_free()
+	hero = hero_scene.instantiate() as Hero
+	hero_turn = randi_range(min_hero_turn, max_hero_turn)
 #	divide the room into screen_size / max_size and create a room in each and connect them
 	var section_count := Vector2i(
 		screen_size.x / max_size.x,

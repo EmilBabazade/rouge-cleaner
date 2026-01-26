@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://d02bsp41n30fk"]
+
+[ext_resource type="Texture2D" uid="uid://c77dxvh10t21" path="res://assets/tileset/hero.png" id="1_4rdp7"]
+[ext_resource type="Script" uid="uid://c0kmvxjqtwuix" path="res://scenes/hero/hero.gd" id="1_jx46w"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4rdp7"]
+size = Vector2(16, 16)
+
+[node name="Hero" type="AnimatableBody2D"]
+collision_layer = 16
+collision_mask = 5
+script = ExtResource("1_jx46w")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_4rdp7")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_4rdp7")
