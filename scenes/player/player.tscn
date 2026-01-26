@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://b16eieqgokxtu"]
+[gd_scene load_steps=8 format=3 uid="uid://b16eieqgokxtu"]
 
 [ext_resource type="Texture2D" uid="uid://c6cmxjrqdxqcq" path="res://assets/tileset/player.png" id="1_8afob"]
 [ext_resource type="Script" uid="uid://btwxg05tirda7" path="res://scenes/player/player.gd" id="1_dovo2"]
@@ -9,6 +9,9 @@
 size = Vector2(8, 8)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gmlin"]
+size = Vector2(8, 8)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lvxji"]
 size = Vector2(8, 8)
 
 [node name="Player" type="AnimatableBody2D"]
@@ -39,3 +42,13 @@ volume_db = -10.0
 
 [node name="CleaningAudio" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("4_lvxji")
+
+[node name="HeroDetector" type="Area2D" parent="."]
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HeroDetector"]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_lvxji")
+debug_color = Color(0.22756937, 0.6248339, 0.38264552, 0.41960785)
+
+[connection signal="body_entered" from="HeroDetector" to="." method="_on_hero_detector_body_entered"]

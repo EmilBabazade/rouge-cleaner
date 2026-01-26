@@ -71,3 +71,11 @@ func _try_step(dir: Vector2) -> void:
 	repeat_timer = first_repeat_delay if first_repeat else repeat_delay
 	first_repeat = false
 	TurnManager.move_turn()
+
+
+func _on_hero_detector_body_entered(body: Node2D) -> void:
+	if body is Hero:
+#		TODO GAME OVER
+#		TODO HERO MOVES ON THE PLAYER
+		print('GAME OVER')
+		

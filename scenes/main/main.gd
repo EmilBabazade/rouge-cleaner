@@ -35,8 +35,8 @@ var dark_corridors: Array[Corridor] = []
 
 @onready var hero_scene := preload("res://scenes/hero/hero.tscn")
 var hero: Hero
-@export var min_hero_turn := 10
-@export var max_hero_turn := 50
+@export var min_hero_turn := 50
+@export var max_hero_turn := 200
 var hero_turn: int
 var player_spawn_room: Rect2
 
@@ -102,7 +102,9 @@ func _process(_delta: float) -> void:
 			randi_range(room.position.y + 1, room.position.y + room.size.y - 2)
 		)
 		hero.global_position = floor_layer.map_to_local(cell)
+		hero.target = player
 		add_child(hero)
+		print('new hero is coming!')
 
 #  alights the corridor this door is on
 func on_door_opened() -> void:
