@@ -1,10 +1,10 @@
 [gd_scene load_steps=4 format=3 uid="uid://dg8cyg0djkuh5"]
 
 [ext_resource type="Script" uid="uid://dwjxi4nothoht" path="res://scenes/dirt/dirt.gd" id="1_phdf4"]
-[ext_resource type="Texture2D" uid="uid://dv1irglnnfaw6" path="res://assets/tileset/blood.png" id="1_urtws"]
+[ext_resource type="Texture2D" uid="uid://ct8pifg44kj11" path="res://assets/tileset/32rogues-0.5.0/32rogues/monsters_edited.png" id="2_phdf4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_urtws"]
-size = Vector2(16, 16)
+size = Vector2(32, 32)
 
 [node name="Dirt" type="Area2D" groups=["dirt"]]
 collision_layer = 8
@@ -12,8 +12,9 @@ collision_mask = 9
 script = ExtResource("1_phdf4")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("1_urtws")
+texture = ExtResource("2_phdf4")
+hframes = 12
+vframes = 13
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_urtws")

@@ -6,13 +6,13 @@
 [ext_resource type="AudioStream" uid="uid://3brjng2210ac" path="res://assets/audio/81076__bennstir__vacuum-off_edited.wav" id="4_lvxji"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dovo2"]
-size = Vector2(8, 8)
+size = Vector2(11.999999, 19)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gmlin"]
-size = Vector2(8, 8)
+size = Vector2(19, 12)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lvxji"]
-size = Vector2(8, 8)
+size = Vector2(19, 12)
 
 [node name="Player" type="AnimatableBody2D"]
 collision_mask = 6
@@ -20,11 +20,10 @@ script = ExtResource("1_dovo2")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(0, -2)
-scale = Vector2(0.5, 0.5)
 texture = ExtResource("1_8afob")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-1.1920929e-07, -2)
+position = Vector2(0.5, -0.99999976)
 rotation = 1.5707964
 shape = SubResource("RectangleShape2D_dovo2")
 
@@ -32,7 +31,7 @@ shape = SubResource("RectangleShape2D_dovo2")
 collision_mask = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CleaningArea"]
-position = Vector2(0, -2)
+position = Vector2(0.5, -1)
 shape = SubResource("RectangleShape2D_gmlin")
 debug_color = Color(0.717331, 0.4230309, 0.61372447, 0.41960785)
 
@@ -47,7 +46,7 @@ stream = ExtResource("4_lvxji")
 collision_mask = 16
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HeroDetector"]
-position = Vector2(0, -2)
+position = Vector2(0.5, -1)
 shape = SubResource("RectangleShape2D_lvxji")
 debug_color = Color(0.22756937, 0.6248339, 0.38264552, 0.41960785)
 

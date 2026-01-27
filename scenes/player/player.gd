@@ -1,7 +1,7 @@
 extends AnimatableBody2D
 class_name Player
 
-@export var move_dist := 16
+@export var move_dist := 32
 @export var step_time := 0.05
 @export var first_repeat_delay := 0.18
 @export var repeat_delay := 0.07

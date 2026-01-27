@@ -1,18 +1,18 @@
 extends Node2D
 
-@export var tile_size := 16
+@export var tile_size := 32
 @export var min_size := Vector2i(5, 5)
 @export var max_size := Vector2i(16, 16)
 
 @onready var floor_layer: TileMapLayer = $FloorLayer
-@export var floor_source := 0
-@export var floor_coords := Vector2i(0, 3)
+@export var floor_source := 2
+@export var floor_coords := Vector2i(0, 12)
 @export var floor_alt := 0
 
 @onready var wall_layer: TileMapLayer = $WallLayer
-@export var wall_source := 0
-@export var wall_coords_vert := Vector2i(0, 4)
-@export var wall_coords_hor := Vector2i(1, 4)
+@export var wall_source := 3
+@export var wall_coords_vert := Vector2i(0, 2)
+@export var wall_coords_hor := Vector2i(1, 2)
 @export var wall_alt := 0
 
 @export var door_source := 1
@@ -20,11 +20,11 @@ extends Node2D
 @export var door_alt := 1
 
 @onready var darkness_layer: TileMapLayer = $DarknessLayer
-@export var darkness_source := 0
-@export var darkness_coords := Vector2i(0, 5)
+@export var darkness_source := 3
+@export var darkness_coords := Vector2i(0, 0)
 @export var darkness_alt := 0
 
-var screen_size := Vector2i.ZERO
+@export var screen_size := Vector2i(72, 40)
 
 @onready var player_scene := preload("res://scenes/player/player.tscn")
 var player: Player = null
@@ -35,8 +35,8 @@ var dark_corridors: Array[Corridor] = []
 
 @onready var hero_scene := preload("res://scenes/hero/hero.tscn")
 var hero: Hero
-@export var min_hero_turn := 50
-@export var max_hero_turn := 200
+@export var min_hero_turn := 20
+@export var max_hero_turn := 100
 var hero_turn: int
 var player_spawn_room: Rect2
 
@@ -46,8 +46,10 @@ var player_spawn_room: Rect2
 @onready var camera: Camera2D = $Camera2D
 
 func _ready() -> void:
-	var vp := get_viewport().get_visible_rect().size
-	screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
+	#var vp := get_viewport().get_visible_rect().size
+	#screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
+	camera.limit_bottom = screen_size.y * tile_size
+	camera.limit_right = screen_size.x * tile_size
 	player = player_scene.instantiate() as Player
 	camera.position_smoothing_enabled = false
 	camera.global_position = player.global_position
@@ -71,7 +73,7 @@ func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("zoom"):
 		if camera.zoom == Vector2.ONE:
 			camera.position_smoothing_enabled = false
-			camera.zoom = Vector2(2,2)
+			camera.zoom = Vector2(0.5,0.5)
 			camera.position_smoothing_enabled = true
 		else:
 			camera.position_smoothing_enabled = false
