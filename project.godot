@@ -90,6 +90,7 @@ clean={
 2d_physics/layer_3="doors"
 2d_physics/layer_4="dirt"
 2d_physics/layer_5="hero"
+2d_physics/layer_6="exit"
 
 [rendering]
 

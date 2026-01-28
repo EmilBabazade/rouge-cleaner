@@ -46,6 +46,10 @@ var player_spawn_room: Rect2i
 
 @onready var camera: Camera2D = $Camera2D
 
+@onready var exit_scene: PackedScene = preload("res://scenes/exit/exit.tscn")
+@onready var exit_holder: Node2D = $ExitHolder
+var exit: Exit
+
 func _ready() -> void:
 	#var vp := get_viewport().get_visible_rect().size
 	#screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
@@ -56,7 +60,7 @@ func _ready() -> void:
 	camera.global_position = player.global_position
 	camera.set_deferred('position_smoothing_enabled', true)
 	add_child(player)
-	generate()
+	generate.call_deferred()
 
 func connect_signals() -> void:
 	var doors := get_tree().get_nodes_in_group('door')
@@ -82,7 +86,7 @@ func _process(_delta: float) -> void:
 			camera.position_smoothing_enabled = true
 # 	regenerate room when r is pressed
 	if Input.is_action_just_pressed("generate"):
-		generate()
+		generate.call_deferred()
 #	when player intersects with a room make it alight
 	var to_remove: Array[int] = []
 	for i in range(dark_rooms.size()):
@@ -109,7 +113,6 @@ func _process(_delta: float) -> void:
 		hero.global_position = floor_layer.map_to_local(cell)
 		hero.target = player
 		hero_holder.add_child(hero)
-		print('new hero is coming!')
 
 #  alights the corridor this door is on
 func on_door_opened() -> void:
@@ -207,6 +210,10 @@ func generate() -> void:
 		hero.queue_free()
 	hero = hero_scene.instantiate() as Hero
 	hero_turn = randi_range(min_hero_turn, max_hero_turn)
+	if exit != null:
+		exit.queue_free()
+	exit = exit_scene.instantiate() as Exit
+	exit.exit.connect(on_exit)
 #	divide the room into screen_size / max_size and create a room in each and connect them
 	var section_count := Vector2i(
 		screen_size.x / max_size.x,
@@ -252,6 +259,22 @@ func generate() -> void:
 	generate_dirts()
 	connect_signals.call_deferred()
 	generate_darkness()
+	add_exit()
+
+# add exit on a room other than player spawn when you press on it, level is regenerated
+func add_exit() -> void:
+	var rooms_to_spawn: Array[Rect2i] = rooms.filter(func(x: Rect2i) -> bool: return x != player_spawn_room)
+	var room: Rect2 = rooms_to_spawn.pick_random()
+#	generate exit in a random room in a random floor coord
+	var cell := Vector2i(
+		randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
+		randi_range(room.position.y + 1, room.position.y + room.size.y - 2)
+	)
+	exit.global_position = floor_layer.map_to_local(cell)
+	exit_holder.add_child(exit)
+
+func on_exit() -> void:
+	generate.call_deferred()
 
 # make everything dark
 func generate_darkness() -> void:
