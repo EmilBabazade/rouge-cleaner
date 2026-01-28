@@ -64,6 +64,10 @@ func _try_step(dir: Vector2) -> void:
 	if not test_move(global_transform, motion):
 		prev_pos = global_position
 		var target := global_position + motion
+		print(target)
+		target = target.snapped(Vector2(move_dist/2, move_dist/2))
+		print(target)
+		
 		var tween := create_tween()
 		var _x := tween.tween_property(self, "global_position", target, step_time)
 		await tween.finished

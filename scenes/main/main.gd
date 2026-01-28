@@ -33,12 +33,13 @@ var dark_rooms: Array[Rect2i] = []
 var corridors: Array[Corridor] = []
 var dark_corridors: Array[Corridor] = []
 
+@onready var hero_holder: Node2D = $HeroHolder
 @onready var hero_scene := preload("res://scenes/hero/hero.tscn")
 var hero: Hero
-@export var min_hero_turn := 20
-@export var max_hero_turn := 100
+@export var min_hero_turn := 0
+@export var max_hero_turn := 1
 var hero_turn: int
-var player_spawn_room: Rect2
+var player_spawn_room: Rect2i
 
 @onready var dirt_scene:PackedScene = preload("res://scenes/dirt/dirt.tscn")
 @onready var dirt_holder := $DirtHolder
@@ -97,7 +98,8 @@ func _process(_delta: float) -> void:
 		dark_rooms.remove_at(i)
 #	add hero that chases the player
 	if TurnManager._turn == hero_turn and not hero.is_node_ready():
-		var room := player_spawn_room
+		var rooms_to_spawn: Array[Rect2i] = rooms.filter(func(x: Rect2i) -> bool: return x != player_spawn_room)
+		var room: Rect2 = rooms_to_spawn.pick_random()
 	#	generate hero in a random coord in first room
 		var cell := Vector2i(
 			randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
@@ -105,7 +107,7 @@ func _process(_delta: float) -> void:
 		)
 		hero.global_position = floor_layer.map_to_local(cell)
 		hero.target = player
-		add_child(hero)
+		hero_holder.add_child(hero)
 		print('new hero is coming!')
 
 #  alights the corridor this door is on
