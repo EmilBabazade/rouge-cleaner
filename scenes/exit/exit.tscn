@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://rgtqam6e4i5h"]
+
+[ext_resource type="Texture2D" uid="uid://ckqabdc6ephlw" path="res://assets/tileset/32rogues-0.5.0/32rogues/tiles.png" id="1_ymjir"]
+
+[node name="Exit" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_ymjir")

@@ -8,23 +8,23 @@ class_name Hero
 func _ready() -> void:
 	TurnManager.new_turn.connect(_on_new_turn)
 #	setup random sprite assigment
-	#var possible_frame_coords: Array[Vector2i] = []
-	#for i in range(7):
-		#for j in range(7):
-			#if j == 0 and (i == 5 or i == 6):
-				#continue
-			#if j == 1 and (i == 5 or i == 6):
-				#continue
-			#if j == 3 and i == 6:
-				#continue
-			#if j == 4 and i == 6:
-				#continue
-			#if j == 5 and i == 6:
-				#continue
-			#if j == 6 and (i == 5 or i == 6):
-				#continue
-			#possible_frame_coords.append(Vector2i(i, j))
-	#sprite.frame_coords = possible_frame_coords.pick_random()
+	var possible_frame_coords: Array[Vector2i] = []
+	for i in range(7):
+		for j in range(7):
+			if j == 0 and (i == 5 or i == 6):
+				continue
+			if j == 1 and (i == 5 or i == 6):
+				continue
+			if j == 3 and i == 6:
+				continue
+			if j == 4 and i == 6:
+				continue
+			if j == 5 and i == 6:
+				continue
+			if j == 6 and (i == 5 or i == 6):
+				continue
+			possible_frame_coords.append(Vector2i(i, j))
+	sprite.frame_coords = possible_frame_coords.pick_random()
 
 func _process(_delta: float) -> void:
 	pass
