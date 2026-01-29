@@ -18,6 +18,7 @@ extends Node2D
 @export var door_source := 1
 @export var door_coords := Vector2i(0, 0)
 @export var door_alt := 1
+@onready var door_opened_audio: AudioStreamPlayer2D = $DoorSound
 
 @onready var darkness_layer: TileMapLayer = $DarknessLayer
 @export var darkness_source := 3
@@ -116,6 +117,7 @@ func _process(_delta: float) -> void:
 
 #  alights the corridor this door is on
 func on_door_opened() -> void:
+	door_opened_audio.play()
 	var curr_pos: Vector2i = player.global_position / tile_size
 	reveal_from(curr_pos)
 

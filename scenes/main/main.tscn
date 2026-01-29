@@ -1,9 +1,10 @@
-[gd_scene load_steps=12 format=4 uid="uid://ieuvtkj711rg"]
+[gd_scene load_steps=13 format=4 uid="uid://ieuvtkj711rg"]
 
 [ext_resource type="Script" uid="uid://def0pt3df7db2" path="res://scenes/main/main.gd" id="1_hyk8p"]
 [ext_resource type="Texture2D" uid="uid://ckqabdc6ephlw" path="res://assets/tileset/32rogues-0.5.0/32rogues/tiles.png" id="2_l3cfh"]
 [ext_resource type="PackedScene" uid="uid://b8aajxygxck7s" path="res://scenes/door/door.tscn" id="3_k2fmo"]
 [ext_resource type="Texture2D" uid="uid://cpxge5082dcq6" path="res://assets/tileset/dark.png" id="4_l3cfh"]
+[ext_resource type="AudioStream" uid="uid://bxxclc4vtnuo1" path="res://assets/audio/213992__fenrirfangs__door-bolt-1.wav" id="5_6q06x"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6q06x"]
 texture = ExtResource("2_l3cfh")
@@ -71,3 +72,6 @@ position_smoothing_speed = 10.0
 rotation_smoothing_enabled = true
 drag_horizontal_enabled = true
 drag_vertical_enabled = true
+
+[node name="DoorSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("5_6q06x")
