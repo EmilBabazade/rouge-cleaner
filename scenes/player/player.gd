@@ -18,6 +18,7 @@ var first_repeat := true
 @onready var cleaning_audio: AudioStreamPlayer2D = $CleaningAudio
 
 signal game_over
+signal dirt_cleaned
 
 func _process(delta: float) -> void:
 #	movement
@@ -43,6 +44,7 @@ func _process(delta: float) -> void:
 					cleaning_audio.play()
 				area.queue_free.call_deferred()
 				TurnManager.move_turn()
+				dirt_cleaned.emit()
 
 func _read_dir() -> Vector2:
 	if Input.is_action_pressed("left"):

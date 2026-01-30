@@ -42,6 +42,8 @@ var hero: Hero
 var hero_turn: int
 var player_spawn_room: Rect2i
 
+var score := 0
+
 @onready var dirt_scene:PackedScene = preload("res://scenes/dirt/dirt.tscn")
 @onready var dirt_holder := $DirtHolder
 
@@ -55,11 +57,19 @@ var is_game_over := false
 
 @onready var ui: CanvasLayer = $UI
 @onready var tutorial: CanvasLayer = $Tutorial
+@onready var score_label: Label = $Score/ScoreText
+
+@onready var game_over_audio: AudioStreamPlayer2D = $GameOverAudio
 
 func on_game_over() -> void:
+	score = 0
 	player.set_process(false)
 	ui.visible = true
 	is_game_over = true
+	game_over_audio.play()
+
+func on_dirt_cleaned() -> void:
+	score += 1
 
 func _ready() -> void:
 	#var vp := get_viewport().get_visible_rect().size
@@ -68,6 +78,7 @@ func _ready() -> void:
 	camera.limit_right = screen_size.x * tile_size
 	player = player_scene.instantiate() as Player
 	player.game_over.connect(on_game_over)
+	player.dirt_cleaned.connect(on_dirt_cleaned)
 	camera.position_smoothing_enabled = false
 	camera.global_position = player.global_position
 	camera.set_deferred('position_smoothing_enabled', true)
@@ -84,6 +95,7 @@ func on_next_turn(turn: int) -> void:
 	print("turn: ", turn)
 
 func _process(_delta: float) -> void:
+	score_label.text = "SCORE: " + str(score)
 	if is_game_over:
 		print('SHOW UI')
 	else:
