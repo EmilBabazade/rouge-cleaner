@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=4 uid="uid://ieuvtkj711rg"]
+[gd_scene load_steps=18 format=4 uid="uid://ieuvtkj711rg"]
 
 [ext_resource type="Script" uid="uid://def0pt3df7db2" path="res://scenes/main/main.gd" id="1_hyk8p"]
 [ext_resource type="Texture2D" uid="uid://ckqabdc6ephlw" path="res://assets/tileset/32rogues-0.5.0/32rogues/tiles.png" id="2_l3cfh"]
@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" uid="uid://bndkkeg7wgyqo" path="res://scenes/ui/ui.tscn" id="6_ow5a4"]
 [ext_resource type="PackedScene" uid="uid://b0cgojsdfvxl1" path="res://scenes/ui/tutorial.tscn" id="7_hujxm"]
 [ext_resource type="AudioStream" uid="uid://dym6akbcuyn8l" path="res://assets/audio/173859__jivatma07__j1game_over_mono.wav" id="8_yyfjg"]
+[ext_resource type="PackedScene" uid="uid://blsed4anwbrab" path="res://scenes/ui/trash_left_text.tscn" id="9_b1x3f"]
+[ext_resource type="AudioStream" uid="uid://1rh4j810cc03" path="res://assets/audio/404024__joshuaempyre__victory-percussion-music-cue.wav" id="10_a8run"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6q06x"]
 texture = ExtResource("2_l3cfh")
@@ -94,4 +96,15 @@ text = "SCORE: 0"
 [node name="GameOverAudio" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("8_yyfjg")
 
+[node name="TrashLeftText" parent="." instance=ExtResource("9_b1x3f")]
+visible = false
+
+[node name="TrashLeftTimer" type="Timer" parent="."]
+wait_time = 4.0
+one_shot = true
+
+[node name="VictoryAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("10_a8run")
+
 [connection signal="new_game" from="UI" to="." method="_on_ui_new_game"]
+[connection signal="timeout" from="TrashLeftTimer" to="." method="_on_trash_left_timer_timeout"]

@@ -58,8 +58,14 @@ var is_game_over := false
 @onready var ui: CanvasLayer = $UI
 @onready var tutorial: CanvasLayer = $Tutorial
 @onready var score_label: Label = $Score/ScoreText
+@onready var dirt_left_label: CanvasLayer = $TrashLeftText
 
 @onready var game_over_audio: AudioStreamPlayer2D = $GameOverAudio
+
+var trash_on_this_floor := 0
+var score_on_this_floor := 0
+@onready var trash_left_timer: Timer = $TrashLeftTimer
+@onready var no_trash_left_floor_audio: AudioStreamPlayer2D = $VictoryAudio
 
 func on_game_over() -> void:
 	score = 0
@@ -70,6 +76,9 @@ func on_game_over() -> void:
 
 func on_dirt_cleaned() -> void:
 	score += 1
+	score_on_this_floor += 1
+	if score_on_this_floor >= trash_on_this_floor:
+		no_trash_left_floor_audio.play()
 
 func _ready() -> void:
 	#var vp := get_viewport().get_visible_rect().size
@@ -96,9 +105,7 @@ func on_next_turn(turn: int) -> void:
 
 func _process(_delta: float) -> void:
 	score_label.text = "SCORE: " + str(score)
-	if is_game_over:
-		print('SHOW UI')
-	else:
+	if !is_game_over:
 		if Input.is_action_just_pressed("menu"):
 			tutorial.visible = !tutorial.visible
 #	camera follow player
@@ -199,7 +206,7 @@ func instantiate_player() -> void:
 
 # generate 0 to minimum room area number of dirts in every room 
 func generate_dirts() -> void:
-	var max_dirt_count := min_size.x * min_size.y
+	var max_dirt_count := min_size.x * min_size.y / 5
 	for r in rooms:
 		for i in randi_range(0, max_dirt_count):
 			var dirt := dirt_scene.instantiate() as Dirt
@@ -209,6 +216,7 @@ func generate_dirts() -> void:
 				dirt.global_position = get_random_dirt_coords(r)
 			if !dirt_collides_with_others(dirt):
 				dirt_holder.add_child(dirt)
+				trash_on_this_floor += 1
 
 # get random dirt coordinates in a room
 func get_random_dirt_coords(r: Rect2i) -> Vector2:
@@ -227,6 +235,8 @@ func dirt_collides_with_others(d: Dirt) -> bool:
 
 # generate rooms and corridors
 func generate() -> void:
+	trash_on_this_floor = 0
+	score_on_this_floor = 0
 	rooms = []
 	corridors = []
 	var rooms_grid: Array[Vector2i] = []
@@ -304,7 +314,12 @@ func add_exit() -> void:
 	exit_holder.add_child(exit)
 
 func on_exit() -> void:
-	generate.call_deferred()
+	if score_on_this_floor < trash_on_this_floor:
+		print(score_on_this_floor, " < ", trash_on_this_floor)
+		dirt_left_label.visible = true
+		trash_left_timer.start()
+	else:
+		generate.call_deferred()
 
 # make everything dark
 func generate_darkness() -> void:
@@ -488,3 +503,7 @@ func _on_ui_new_game() -> void:
 	ui.visible = false
 	generate.call_deferred()
 	player.set_process(true)
+
+
+func _on_trash_left_timer_timeout() -> void:
+	dirt_left_label.visible = false

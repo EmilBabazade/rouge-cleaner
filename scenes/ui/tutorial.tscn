@@ -37,7 +37,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 32
 text = "Movement - WASD
-Clean Dead Bodies - SPACE
+Clean Trash - SPACE
 Zoom - Z
 I am stuck - R
 Press ESC to close this
