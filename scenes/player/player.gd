@@ -17,6 +17,8 @@ var first_repeat := true
 @onready var move_audio: AudioStreamPlayer2D = $MoveAudio
 @onready var cleaning_audio: AudioStreamPlayer2D = $CleaningAudio
 
+signal game_over
+
 func _process(delta: float) -> void:
 #	movement
 	var dir := _read_dir()
@@ -79,7 +81,5 @@ func _try_step(dir: Vector2) -> void:
 
 func _on_hero_detector_body_entered(body: Node2D) -> void:
 	if body is Hero:
-#		TODO GAME OVER
-#		TODO HERO MOVES ON THE PLAYER
-		print('GAME OVER')
+		game_over.emit()
 		

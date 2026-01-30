@@ -1,10 +1,12 @@
-[gd_scene load_steps=13 format=4 uid="uid://ieuvtkj711rg"]
+[gd_scene load_steps=15 format=4 uid="uid://ieuvtkj711rg"]
 
 [ext_resource type="Script" uid="uid://def0pt3df7db2" path="res://scenes/main/main.gd" id="1_hyk8p"]
 [ext_resource type="Texture2D" uid="uid://ckqabdc6ephlw" path="res://assets/tileset/32rogues-0.5.0/32rogues/tiles.png" id="2_l3cfh"]
 [ext_resource type="PackedScene" uid="uid://b8aajxygxck7s" path="res://scenes/door/door.tscn" id="3_k2fmo"]
 [ext_resource type="Texture2D" uid="uid://cpxge5082dcq6" path="res://assets/tileset/dark.png" id="4_l3cfh"]
 [ext_resource type="AudioStream" uid="uid://bxxclc4vtnuo1" path="res://assets/audio/213992__fenrirfangs__door-bolt-1.wav" id="5_6q06x"]
+[ext_resource type="PackedScene" uid="uid://bndkkeg7wgyqo" path="res://scenes/ui/ui.tscn" id="6_ow5a4"]
+[ext_resource type="PackedScene" uid="uid://b0cgojsdfvxl1" path="res://scenes/ui/tutorial.tscn" id="7_hujxm"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6q06x"]
 texture = ExtResource("2_l3cfh")
@@ -75,3 +77,10 @@ drag_vertical_enabled = true
 
 [node name="DoorSound" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("5_6q06x")
+
+[node name="UI" parent="." instance=ExtResource("6_ow5a4")]
+visible = false
+
+[node name="Tutorial" parent="." instance=ExtResource("7_hujxm")]
+
+[connection signal="new_game" from="UI" to="." method="_on_ui_new_game"]

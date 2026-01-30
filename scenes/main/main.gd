@@ -51,12 +51,23 @@ var player_spawn_room: Rect2i
 @onready var exit_holder: Node2D = $ExitHolder
 var exit: Exit
 
+var is_game_over := false
+
+@onready var ui: CanvasLayer = $UI
+@onready var tutorial: CanvasLayer = $Tutorial
+
+func on_game_over() -> void:
+	player.set_process(false)
+	ui.visible = true
+	is_game_over = true
+
 func _ready() -> void:
 	#var vp := get_viewport().get_visible_rect().size
 	#screen_size = Vector2i(int(vp.x / tile_size), int(vp.y / tile_size))
 	camera.limit_bottom = screen_size.y * tile_size
 	camera.limit_right = screen_size.x * tile_size
 	player = player_scene.instantiate() as Player
+	player.game_over.connect(on_game_over)
 	camera.position_smoothing_enabled = false
 	camera.global_position = player.global_position
 	camera.set_deferred('position_smoothing_enabled', true)
@@ -73,47 +84,52 @@ func on_next_turn(turn: int) -> void:
 	print("turn: ", turn)
 
 func _process(_delta: float) -> void:
+	if is_game_over:
+		print('SHOW UI')
+	else:
+		if Input.is_action_just_pressed("menu"):
+			tutorial.visible = !tutorial.visible
 #	camera follow player
-	camera.global_position = player.global_position
+		camera.global_position = player.global_position
 #	change camera zoom level
-	if Input.is_action_just_pressed("zoom"):
-		if camera.zoom == Vector2.ONE:
-			camera.position_smoothing_enabled = false
-			camera.zoom = Vector2(0.5,0.5)
-			camera.position_smoothing_enabled = true
-		else:
-			camera.position_smoothing_enabled = false
-			camera.zoom = Vector2.ONE
-			camera.position_smoothing_enabled = true
+		if Input.is_action_just_pressed("zoom"):
+			if camera.zoom == Vector2.ONE:
+				camera.position_smoothing_enabled = false
+				camera.zoom = Vector2(0.5,0.5)
+				camera.position_smoothing_enabled = true
+			else:
+				camera.position_smoothing_enabled = false
+				camera.zoom = Vector2.ONE
+				camera.position_smoothing_enabled = true
 # 	regenerate room when r is pressed
-	if Input.is_action_just_pressed("generate"):
-		generate.call_deferred()
+		if Input.is_action_just_pressed("generate"):
+			generate.call_deferred()
 #	when player intersects with a room make it alight
-	var to_remove: Array[int] = []
-	for i in range(dark_rooms.size()):
-		var r := dark_rooms[i]
-		var p := Rect2i(player.position / tile_size, Vector2i(1, 1))
-		if r.intersects(p):
-			for x in range(r.position.x, r.position.x + r.size.x):
-				for y in range(r.position.y, r.position.y + r.size.y):
-					var coord := Vector2i(x,y)
-					darkness_layer.erase_cell(coord)
-			to_remove.append(i)
-	for i in to_remove:
-		dark_rooms.remove_at(i)
+		var to_remove: Array[int] = []
+		for i in range(dark_rooms.size()):
+			var r := dark_rooms[i]
+			var p := Rect2i(player.position / tile_size, Vector2i(1, 1))
+			if r.intersects(p):
+				for x in range(r.position.x, r.position.x + r.size.x):
+					for y in range(r.position.y, r.position.y + r.size.y):
+						var coord := Vector2i(x,y)
+						darkness_layer.erase_cell(coord)
+				to_remove.append(i)
+		for i in to_remove:
+			dark_rooms.remove_at(i)
 #	add hero that chases the player
-	if TurnManager._turn == hero_turn and not hero.is_node_ready():
+		if TurnManager._turn == hero_turn and not hero.is_node_ready():
 		#var rooms_to_spawn: Array[Rect2i] = rooms.filter(func(x: Rect2i) -> bool: return x != player_spawn_room)
 		#var room: Rect2 = rooms_to_spawn.pick_random()
-		var room := player_spawn_room
+			var room := player_spawn_room
 	#	generate hero in a random coord in first room
-		var cell := Vector2i(
-			randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
-			randi_range(room.position.y + 1, room.position.y + room.size.y - 2)
-		)
-		hero.global_position = floor_layer.map_to_local(cell)
-		hero.target = player
-		hero_holder.add_child(hero)
+			var cell := Vector2i(
+				randi_range(room.position.x + 1, room.position.x + room.size.x - 2),
+				randi_range(room.position.y + 1, room.position.y + room.size.y - 2)
+			)
+			hero.global_position = floor_layer.map_to_local(cell)
+			hero.target = player
+			hero_holder.add_child(hero)
 
 #  alights the corridor this door is on
 func on_door_opened() -> void:
@@ -453,3 +469,10 @@ func is_corner(coords: Vector2i) -> bool:
 		is_bottom_left_corner ||
 		is_bottom_right_corner
 	)
+
+
+func _on_ui_new_game() -> void:
+	is_game_over = false
+	ui.visible = false
+	generate.call_deferred()
+	player.set_process(true)
